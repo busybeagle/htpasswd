@@ -1,12 +1,8 @@
-from builtins import object
 from crypt import crypt
 from string import ascii_letters, digits
 from random import choice
 import subprocess
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 
 class UserExists(Exception):
@@ -30,7 +26,7 @@ class UnknownEncryptionMode(Exception):
         return "Encryption Mode %s is unknown/unsupported" % self.mode
 
 
-class Basic(object):
+class Basic:
 
     """ Basic object deals with Basic HTTP Authorization configuration file.
     It is passed the path to userdb file. """
@@ -66,6 +62,11 @@ class Basic(object):
     def users(self):
         """ Returns users in a tuple """
         return list(self.new_users.keys())
+
+    def wipe(self):
+        """Remove all existing users from htpasswd file"""
+        self.initial_users = {}
+        self.new_users = {}
 
     def add(self, user, password):
         """ Adds a user with password """

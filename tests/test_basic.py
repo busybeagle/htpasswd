@@ -7,6 +7,7 @@ import shutil
 from crypt import crypt
 
 t_userdb = "tests/test.userdb"
+t_userdb_nonexist = "tests/test.userdb.nonexist"
 t_userdb_md5_base = "tests/test.userdb.md5base"
 
 
@@ -172,6 +173,7 @@ class BasicTests(unittest.TestCase):
 
     def tearDown(self):
         shutil.move("tests/test.userdb_backup", t_userdb)
+        shutil.rmtree(t_userdb_nonexist, ignore_errors=True)
 
     def test_users(self):
         with htpasswd.Basic(t_userdb) as userdb:
@@ -223,6 +225,12 @@ class BasicTests(unittest.TestCase):
             salt = password[:2]
             test = crypt("password", salt)
             self.assertEqual(password, test)
+
+    def test_wipe(self):
+        with htpasswd.Basic(t_userdb, mode='md5') as userdb:
+            userdb.wipe()
+            self.assertFalse(userdb.users)
+
 
 if __name__ == '__main__':
     unittest.main()
