@@ -38,13 +38,16 @@ class Basic:
         self.new_users = OrderedDict()
 
     def __enter__(self):
-        with open(self.userdb, "r") as users:
-            for i in users:
-                line = i.strip()
-                if not line:
-                    continue
-                user, password = i.split(":", 1)
-                self.initial_users[user] = password
+        try:
+            with open(self.userdb, "r") as users:
+                for i in users.readlines():
+                    line = i.strip()
+                    if not line:
+                        continue
+                    user, password = i.split(":", 1)
+                    self.initial_users[user] = password
+        except FileNotFoundError:
+            pass
         self.new_users = self.initial_users.copy()
         return self
 
