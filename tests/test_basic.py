@@ -5,10 +5,78 @@ from htpasswd import UserExists, UserNotExists
 import unittest
 import shutil
 from crypt import crypt
+from bcrypt import hashpw
 
 t_userdb = "tests/test.userdb"
 t_userdb_nonexist = "tests/test.userdb.nonexist"
 t_userdb_md5_base = "tests/test.userdb.md5base"
+t_userdb_bcrypt_base = "tests/test.userdb.bcrypt"
+
+
+class BasicBcryptTests(unittest.TestCase):
+
+    def setUp(self):
+        shutil.copy(t_userdb_bcrypt_base, "tests/test.userdb.bcrypt_backup")
+
+    def tearDown(self):
+        shutil.move("tests/test.userdb.bcrypt_backup", t_userdb_bcrypt_base)
+        shutil.rmtree(t_userdb_nonexist, ignore_errors=True)
+
+    def test_users(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            self.assertEqual(userdb.users, ["jack", "diane"])
+
+    def test___contains__(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            self.assertTrue(userdb.__contains__("jack"))
+            self.assertFalse(userdb.__contains__("jack1"))
+
+    def test_not_exists(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            self.assertRaises(UserNotExists, lambda: userdb.pop("nobody"))
+
+    def test_exists(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            self.assertRaises(UserExists, lambda: userdb.add("jack", "password"))
+
+    def test_add(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            userdb.add("henry", "password")
+            self.assertTrue(userdb.__contains__("henry"))
+
+    def test_pop(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            userdb.pop("diane")
+            self.assertFalse(userdb.__contains__("diane"))
+
+    def test_pop_exception(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            self.assertRaises(htpasswd.UserNotExists, lambda: userdb.pop("nobody"))
+
+    def test_change_password(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            userdb.change_password("diane", "password")
+        with open(t_userdb_bcrypt_base, "r") as users:
+            for user in users.readlines():
+                if user.startswith("diane:"):
+                    test = user
+        self.assertNotEqual(test, "diane:$2b$12$HP4WXpV68sx21pPAR12ZuuR8wtQs9SanbFted9TjJ5W8PV28N1nHi\n")
+
+    def test_change_password_exception(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base) as userdb:
+            self.assertRaises(htpasswd.UserNotExists, lambda: userdb.change_password("nobody", "password"))
+
+    def test__encrypt_password(self):
+        with htpasswd.Basic(t_userdb, mode='bcrypt') as userdb:
+            password = userdb._encrypt_password("password")
+            salt = password[:29]
+            test = hashpw("password".encode('utf-8'), salt.encode('utf-8')).decode('utf-8')
+            self.assertEqual(password, test)
+
+    def test_wipe(self):
+        with htpasswd.Basic(t_userdb_bcrypt_base, mode='bcrypt') as userdb:
+            userdb.wipe()
+            self.assertFalse(userdb.users)
 
 
 class BasicMD5Tests(unittest.TestCase):

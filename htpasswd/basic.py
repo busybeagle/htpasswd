@@ -3,7 +3,7 @@ from string import ascii_letters, digits
 from random import choice
 import subprocess
 from collections import OrderedDict
-
+import bcrypt
 
 class UserExists(Exception):
 
@@ -97,6 +97,8 @@ class Basic:
             return self._md5_password(password)
         elif self.encryption_mode.lower() == 'md5-base':
             return self._md5_base_password(password)
+        elif self.encryption_mode.lower() == 'bcrypt':
+            return self._bcrypt_password(password)
         else:
             raise UnknownEncryptionMode(self.encryption_mode)
 
@@ -124,3 +126,16 @@ class Basic:
                                         'passwd',
                                         '-1',
                                         password]).decode('utf-8').strip()
+
+    @classmethod
+    def _bcrypt_password(cls, password):
+        """
+        Crypts password using bcrypt.
+
+                Parameters:
+                        password (str): The secret to be hashed
+
+                Returns:
+                        hash (str): Hashed password
+        """
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
