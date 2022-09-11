@@ -1,10 +1,11 @@
 # htpasswd [![Build Status](https://secure.travis-ci.org/thesharp/htpasswd.png)](http://travis-ci.org/thesharp/htpasswd)
 
 ## Description
-**htpasswd** is a library for working with htpasswd user (only basic authorization) and group files. It supports CRYPT, MD5 (based) and MD5 (apache variant, 'apr1') encryption methods. To actually use MD5 encryption method you *MUST* have an ``openssl`` binary installed into system ``$PATH``.
+**htpasswd** is a library for working with htpasswd user (only basic authorization) and group files. It supports CRYPT, MD5 (based), MD5 (apache variant, 'apr1') and BCRYPT encryption methods. To actually use MD5 encryption method you *MUST* have an ``openssl`` binary installed into system ``$PATH``.
 
 ## Dependencies
 - Python 2.7 or 3.3 or 3.4
+- [bcrypt](http://pypi.python.org/pypi/bcrypt/3.1.7) >= 3.1.7
 - [orderedmultidict](http://pypi.python.org/pypi/orderedmultidict/0.7) >= 0.7
 - [future](https://pypi.python.org/pypi/future)
 - [nose](http://pypi.python.org/pypi/nose/) >= 1.1.2 (for tests)
@@ -39,6 +40,10 @@ To use MD5 apache variant encryption, add ``mode="md5"`` to the constructor:
 or use ``md5-base`` for MD5 based encryotion:
 
     with htpasswd.Basic("/path/to/user.db", mode="md5-base") as userdb
+
+or use ``bcrypt`` for bcrypt based encryotion:
+
+    with htpasswd.Basic("/path/to/user.db", mode="bcrypt") as userdb
 
 ## Provided methods
 
